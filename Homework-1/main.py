@@ -12,6 +12,11 @@
 
 from time import time
 from functools import wraps
+import logging
+
+ODD = 'ODD'
+EVEN = 'EVEN'
+SIMPLE = 'SIMPLE'
 
 
 def run_timer(func):  # Способ без использования дополнительных библиотек
@@ -70,10 +75,7 @@ def fib(position):  # Каждое последующее число равно 
 
 @run_timer_wraps_mode
 def multiple_func(*nums, count=2):  # Функция возведения в степень
-    powered_list = []
-    for num in nums:
-        powered_list.append(num ** count)
-    print(powered_list)
+    print([num**count for num in nums])  # List comprehension
 
 
 def is_odd(number):  # Проверка на нечётные числа
@@ -85,13 +87,14 @@ def is_odd(number):  # Проверка на нечётные числа
 
 
 def is_even(number):  # Проверка на чётные числа
-    if number % 2 != 0:
-        return False
-    return True
+    return number % 2 == 0
 
 
 def is_simple(number):  # Проверка на простоту числа
     if number == 0:  # Ноль не является простым числом по определению
+        return False
+    if number < 0:  # Проверка на отрицательные значения
+        logging.warning(f"При проверке числа на простоту в качестве аргумента получено отрицательное число! ({number})")
         return False
     for i in range(2, number):
         if number % i == 0:
@@ -100,13 +103,14 @@ def is_simple(number):  # Проверка на простоту числа
 
 
 @run_timer
-def select_nums(numbers, selection_type="ODD"):  # Возвращение чисел по выбранному критерию
-    check_functions = {'ODD': is_odd, 'EVEN': is_even, 'SIMPLE': is_simple}
-    result = []
-    for number in numbers:
-        if check_functions[selection_type](number):
-            result.append(number)
-    print(result)
+def select_nums(numbers, selection_type=ODD):  # Возвращение чисел по выбранному критерию
+    check_functions = dict(ODD=is_odd, EVEN=is_even, SIMPLE=is_simple)
+    print(list(filter(check_functions[selection_type], numbers)))  # С использованием filter
+
+
+def select_nums_unfiltered(numbers, selection_type=ODD):  # Возвращение чисел по выбранному критерию
+    check_functions = dict(ODD=is_odd, EVEN=is_even, SIMPLE=is_simple)
+    print([num for num in numbers if check_functions[selection_type](num)])  # List comprehensions
 
 
 def main():
@@ -115,13 +119,15 @@ def main():
     print("Вызов функции возведения чисел в степень с указанием степени (в примере — в степень 10240")
     multiple_func(1, 3, 5, count=10240)
     print("Вывод списка только нечётных чисел для набора чисел 1, 2, 3, 4, 5, 6, 7")
-    select_nums([1, 2, 3, 4, 5, 6, 7], "ODD")
+    select_nums([1, 2, 3, 4, 5, 6, 7], ODD)
     print("Вывод списка только чётных чисел для набора чисел 1, 2, 3, 4, 5, 6, 7")
-    select_nums([1, 2, 3, 4, 5, 6, 7], "EVEN")
+    select_nums([1, 2, 3, 4, 5, 6, 7], EVEN)
     print("Вывод списка только простых чисел для набора чисел 1, 2, 3, 4, 5, 6, 7")
-    select_nums([1, 2, 3, 4, 5, 6, 7], "SIMPLE")
+    select_nums([1, 2, 3, 4, 5, 6, 7], SIMPLE)
     print("Вывод числа Фибоначчи (№ 3 в последовательности)")
     fib(3)
+    print("Вывод списка только чётных чисел для набора чисел 1, 2, 3, 4, 5, 6, 7 с применением иной функции")
+    select_nums_unfiltered([1, 2, 3, 4, 5, 6, 7], EVEN)
 
 
 if __name__ == "__main__":
